@@ -15,15 +15,26 @@ class CustoFixoMensal(models.Model):
         return self.nome
 
 
-class CustoVariavelDoProduto(models.Model):
+
+class Insumo(models.Model):
     nome = models.CharField(max_length=50)
     valor = models.FloatField()
-    tipo = models.CharField(max_length=3, choices=tipos_de_valores, default='BRL')
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
+    descricao = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.nome}: {self.valor} {self.tipo}'
+        return f'{self.nome} (R$ {self.valor})'
 
+class CustoVariavelDoProduto(models.Model):
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
+    insumo = models.OneToOneField(Insumo, on_delete=models.CASCADE)
+    porcentagem_de_uso = models.IntegerField(default=100)
+
+    def __str__(self):
+        return f'{self.insumo.nome} para {self.produto.nome}'
+
+    @property
+    def total_da_fracao(self):
+        return (self.insumo.valor * float(self.porcentagem_de_uso)) / 100
 
 class Produto(models.Model):
     nome = models.CharField(max_length=50)
@@ -37,8 +48,7 @@ class Produto(models.Model):
     def total_de_custo(self):
         total_de_custo = 0.0
         for custo in CustoVariavelDoProduto.objects.filter(produto_id=self.id):
-            if custo.tipo != '%':
-                total_de_custo += custo.valor
+            total_de_custo += custo.total_da_fracao
 
         return total_de_custo
 
