@@ -28,6 +28,7 @@ class CustoVariavelDoProduto(models.Model):
     produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
     insumo = models.OneToOneField(Insumo, on_delete=models.CASCADE)
     porcentagem_de_uso = models.IntegerField(default=100)
+    descricao_curta = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f'{self.insumo.nome} para {self.produto.nome}'
